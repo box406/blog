@@ -4,3 +4,30 @@
 
 * fasebookのAPIを使う準備
 以前の記事を見て下さい
+
+
+* ログイン認証を行う
+edenのマニュアルに書かれているサンプルコードをそのまま実行すると、「連携アプリの認証」になってしまうので少し拡張する必要がある
+※もしかしたら僕の確認ミスかもしれませんが、一応ソースレベルで確認してみたつもりです
+
+以下twitterのマニュアル
+https://dev.twitter.com/docs/api/1.1#102
+
+
+
+
+
+※サンプルURL
+- ユーザログイン
+https://    twitter.com/oauth/authenticate?oauth_signature_method=HMAC-SHA1&oauth_signature=FX7Kpvg%2FtRb1fn33tWzqp9UGFiA%3D&oauth_token=C92vkzTsjOqhR70hrUDogjRds10zK7ka0KIBg500pM&oauth_callback=http%3A%2F%2Fdisqus.com%2F_ax%2Ftwitter%2Fcomplete%2F
+?oauth_signature_method=HMAC-SHA1
+&oauth_signature=FX7Kpvg%2FtRb1fn33tWzqp9UGFiA%3D
+&oauth_token=C92vkzTsjOqhR70hrUDogjRds10zK7ka0KIBg500pM
+&oauth_callback=http%3A%2F%2Fdisqus.com%2F_ax%2Ftwitter%2Fcomplete%2F
+
+- アプリログイン
+https://api.twitter.com/oauth/authorize?oauth_token=Pwfdn4Mes3cVdIZFz9VCMCFYXooAQ9Y9226RM57Kkk&oauth_callback=http%3A%2F%2Flocalhost%2Fdigup%2Ftest%2Fcallback.php&force_login=1
+?oauth_token=Pwfdn4Mes3cVdIZFz9VCMCFYXooAQ9Y9226RM57Kkk
+&oauth_callback=http%3A%2F%2Flocalhost%2Fdigup%2Ftest%2Fcallback.php
+&force_login=1
+
