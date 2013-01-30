@@ -45,6 +45,12 @@ https://dev.twitter.com/
 >||
 http://hogefuga.com/twitterapi/
 ||<
+<b>※localhostからアクセスする場合は以下のようにして下さい</b>
+>||
+http://127.0.0.1/twitterapi/
+||<
+<b>※「127.0.0.1」の部分を「localhost」にすると受け付けてくれません</b>
+
 - CallbackURL
 -- 認証などを行った時にtwitterから自分のアプリケーションに戻る時のURL、入力は必須ではない
 <b>例 ></b>
@@ -70,6 +76,5 @@ APIとのアクセスを行うかは自由ですので、自分にあった方�
 
 twitter APIのドキュメントは以下です（英語ですT T）
 https://dev.twitter.com/docs/api/1.1
-
 
 
