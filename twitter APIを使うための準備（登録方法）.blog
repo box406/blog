@@ -4,13 +4,72 @@ https://dev.twitter.com/
 ||<
 上記のサイトにアクセスし下記の画面が表示されます
 
+1. ログイン前の画面
 [f:id:box406:20130126084942p:plain]
+ログインしていない場合は画面右上の「sign in」をクリックして下さい
+ログインしている場合は画面右上に自分のtwitter名が表示されています
+
+2. ログイン画面
 [f:id:box406:20130126084947p:plain]
+自分のtwitter名とパスワードを入力して「log in」ボタンをクリックして下さい
+入力した内容が正しければ以下の画面が表示されます
+
+3. ログイン後の画面
+[f:id:box406:20130131071339p:plain]
+ログインが成功したら画面右上に自分のtwiter名と画像が表示されます
+ここからアプリケーションの登録を行います
+画面右上に表示されているtwitter名の上にマウスをのせて下さい、以下のメニューが表示されます
+
+- My subscription
+- My application
+- Sign out
+
+「My application」をクリックして下さい、以下の画面が表示されます
+
+4. Create a new application
 [f:id:box406:20130124070601p:plain]
-「Create a new application」をクリックして下さい
+「Create a new application」ボタンをクリックして下さい
+以下の入力画面が表示されます
+
+5. application 情報入力画面
 [f:id:box406:20130124070818p:plain]
+赤枠の部分を入力して下さい
+
+- Name
+-- アプリケーションの名前（とりあえず適当でも良いです）
+- Description
+-- アプリケーションの説明（とりあえず適当でも良いです）
+- Website
+-- アプリケーションを動作させるWEサイトのURL
+<b>例 ></b>
+>||
+http://hogefuga.com/twitterapi/
+||<
+- CallbackURL
+-- 認証などを行った時にtwitterから自分のアプリケーションに戻る時のURL、入力は必須ではない
+<b>例 ></b>
+>||
+http://hogefuga.com/twitterapi/auth_callback.php
+||<
 [f:id:box406:20130124070825p:plain]
+入力が終わったら、画面の下までスクロールします、「Developer Rules Of The Road」を読んで（※僕は英語なんでなに書いてるのかちんぷんかんぷんです）同意するにチェックします
+「CAPTCHA」を入力して「Create you twiter application」をクリックします
+入力に問題がなければ以下の画面が表示されます
+
+6. my application 画面
 [f:id:box406:20130124070832p:plain]
 [f:id:box406:20130124071019p:plain]
+これで登録は終了です、表示されている「Consumer key」「Consumer secret」はtwitterAPIにアクセスする時に
+必要な情報なので公開などはせずに保存して下さい
+
+また作成するapplicationによって「Access level」を変更して下さい
+applicationに変更を行う場合は「setting」タブをクリックして下さい、登録時とにたような画面が表示されます
+
+これでTwitterAPIを使う準備が出来ました、あとは自前でAPIとのアクセスを行うかライブラリを使用して
+APIとのアクセスを行うかは自由ですので、自分にあった方法でAPIにアクセスして下さい
+
+twitter APIのドキュメントは以下です（英語ですT T）
+https://dev.twitter.com/docs/api/1.1
+
 
 
