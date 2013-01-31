@@ -1,0 +1,27 @@
+* 今さらながら「google web font」 を使ったのでメモします
+
+>||
+http://www.google.com/webfonts
+||<
+上記にアクセスする
+
+1. font 選択画面
+[画像]
+使いたいフォントが見つかったら「Add to Collection」からfontを追加する
+
+2. style, character set 選択
+[画像]
+style、character setを選択します
+用途に応じて変更して下さい
+
+3. 自分のWEBサイトに読み込む
+[画像]
+CSSの読込みのHTMLコードが表示されているのでコピーして自分のWEBサイトのHTMLにペーストする
+CSSのコードが表示されているので該当する箇所にコピーして下さい
+右側にサンプルコードが載っています
+
+>|css|
+h1 { font-family: ‘Metrophobic’, Arial, serif; font-weight: 400; }
+||<
+
+これで終了です
