@@ -1,0 +1,12 @@
+title : twiter APIからtweetしたらエラーが帰ってきた（Status is a duplicate）
+
+>||
+Status is a duplicate
+||<
+
+twitterAPIからtweetした場合に同じtweetをエラーにする機能があるようです
+bot対策とかスパム対策でしょうね
+
+今作ってる「雨かも（大阪）bot」に日付を入れて対処しよう
+
+https://twitter.com/amekamo_osaka
