@@ -1,35 +1,129 @@
 # twitter facebook のAPIを簡単に使うために「eden」を試す
 * twitter のAPIを使う準備
 以前の記事を見て下さい
+http://box406.hatenablog.com/entry/2013/01/31/074651
 
 * fasebookのAPIを使う準備
 以前の記事を見て下さい
+http://box406.hatenablog.com/entry/2013/02/01/074219
 
+* facebookのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得する
 
-* ログイン認証を行う
-edenのマニュアルに書かれているサンプルコードをそのまま実行すると、「連携アプリの認証」になってしまうので少し拡張する必要がある
-※もしかしたら僕の確認ミスかもしれませんが、一応ソースレベルで確認してみたつもりです
+** ログイン画面を表示するまで
 
-以下twitterのマニュアル
->||
-https://dev.twitter.com/docs/api/1.1#102
+- ログイン認証（サンプルソース）
+>|php|
+<?php
+
+//read 
+require_once('vendor/eden/eden.php');
+
+// api setting
+$api_setting = array("facebook" => array("key"  => "*******",
+                                         "pass" => "*******"));
+
+// set loader
+eden()->setLoader();
+$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
+$login = $auth->getLoginUrl();
+
+header('Location: ' . $login);
 ||<
 
+- edenの読込み
+>|php|
+//read 
+require_once('vendor/eden/eden.php');
+||<
+edenは以下のURLからダウンロード
+>||
+http://www.eden-php.com/
+||<
+「vendor」に配置している、呼び出せる場所ならどこでもよい
+composerとかで配置するのがスマートなやり方なんでしょうね〜、今度やってみます
 
-※サンプルURL
-- ユーザログイン
-https://twitter.com/oauth/authenticate?oauth_signature_method=HMAC-SHA1&oauth_signature=FX7Kpvg%2FtRb1fn33tWzqp9UGFiA%3D&oauth_token=C92vkzTsjOqhR70hrUDogjRds10zK7ka0KIBg500pM&oauth_callback=http%3A%2F%2Fdisqus.com%2F_ax%2Ftwitter%2Fcomplete%2F
-?oauth_signature_method=HMAC-SHA1
-&oauth_signature=FX7Kpvg%2FtRb1fn33tWzqp9UGFiA%3D
-&oauth_token=C92vkzTsjOqhR70hrUDogjRds10zK7ka0KIBg500pM
-&oauth_callback=http%3A%2F%2Fdisqus.com%2F_ax%2Ftwitter%2Fcomplete%2F
+- 取得した「App ID」、「App Secret」を設定する
+>||
+// api setting
+$api_setting = array("facebook" => array("key"  => "*******",
+                                         "pass" => "*******"));
+||<
+keyに「App ID」をpassに「App secret」を設定しています
+別に配列に設定しなくても良いです、定数とかに設定してもよいです、好みの問題かと思います
+
+- eden の読込み
+>|php|
+// set loader
+eden()->setLoader();
+||<
+上記の記述をかならず処理を行う前に書いて下さい、公式のマニュアルのサンプルには上記の記述が載っていないので
+かるくはまりました、よく考えればあたり前の事なんですが
+
+- oauth、ログイン用URLを取得
+>|php|
+$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
+$login = $auth->getLoginUrl();
+||<
+auth()の引数は以下です
+
+|第1引数|App ID|
+|第2引数|App Secret|
+|第3引数|callback URL|
+
+ログインURLを取得する
+
+- 取得したログインURLに飛ばす
+>||
+header('Location: ' . $login);
+||<
+facebookのログイン画面が表示されます
+
+[f:id:box406:20130211080835p:plain]
+ログインを行って下さい、入力されたID/Passが正しければ設定したcallbackURLに遷移します
+
+** ログイン画面から戻ってきた処理（callback）
+- サンプルソース（callbackURL）
+>|php|
+<?php
+
+//read 
+require_once('vender/eden/eden.php');
+
+// sesstion start
+session_start();
+
+// api setting
+$api_setting = array("facebook" => array("key"  => "313820652072237",
+                                         "pass" => "a9ec7cfea7a5b37ea93f0e3229fb5902"));
+
+// set loader
+eden()->setLoader();
+$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
+$access = $auth->getAccess($_GET['code']);
+$user = eden('facebook')->graph($access['access_token'])->getUser();
+||<
+※authとcallbackを同じソースで行ってもよいが分かりやすいように処理を分けました、公式のサンプルはワンソースで処理を行っています
+
+- 同じ部分の説明は省きます
+>||
+<?php
+
+//read 
+require_once('vender/eden/eden.php');
+
+// sesstion start
+session_start();
+
+// api setting
+$api_setting = array("facebook" => array("key"  => "313820652072237",
+                                         "pass" => "a9ec7cfea7a5b37ea93f0e3229fb5902"));
+
+// set loader
+eden()->setLoader();
+$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
+||<
+
+-- 
 
 
-https://api.twitter.com/oauth/authenticate?
-
-- アプリログイン
-https://api.twitter.com/oauth/authorize?oauth_token=Pwfdn4Mes3cVdIZFz9VCMCFYXooAQ9Y9226RM57Kkk&oauth_callback=http%3A%2F%2Flocalhost%2Fdigup%2Ftest%2Fcallback.php&force_login=1
-?oauth_token=Pwfdn4Mes3cVdIZFz9VCMCFYXooAQ9Y9226RM57Kkk
-&oauth_callback=http%3A%2F%2Flocalhost%2Fdigup%2Ftest%2Fcallback.php
-&force_login=1
-
+* twitterのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得する
