@@ -1,7 +1,4 @@
-# twitter facebook のAPIを簡単に使うために「eden」を試す
-* twitter のAPIを使う準備
-以前の記事を見て下さい
-http://box406.hatenablog.com/entry/2013/01/31/074651
+#　facebook のAPIを簡単に使うために「eden」を試す
 
 * fasebookのAPIを使う準備
 以前の記事を見て下さい
@@ -123,7 +120,25 @@ eden()->setLoader();
 $auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
 ||<
 
--- 
+-- アクセストークンの取得
+>||
+$access = $auth->getAccess($_GET['code']);
+||<
+facebookから帰ってきた「code」を使ってアクセストークンを取得
 
+-- ユーザ情報を取得
+>||
+$user = eden('facebook')->graph($access['access_token'])->getUser();
+||<
+graphメソッド、getUserメソッドを使ってユーザ情報を取得します
+オプション項目が指定できますが、ここではなにも指定せずに情報を取得しています
 
-* twitterのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得する
+成功すれば$userに配列でユーザ情報が格納されます
+
+ほかにもできる事はたくさんありますので以下のドキュメントを参考にして下さい
+
+http://www.eden-php.com/documentation/social/facebook
+
+⬆英語です(T T)
+
+次は「twitter　のAPIを簡単に使うために「eden」を試す」を書きます
