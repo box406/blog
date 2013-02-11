@@ -1,141 +1,43 @@
-# twitter facebook のAPIを簡単に使うために「eden」を試す
+# twitter のAPIを簡単に使うために「eden」を試す
 * twitter のAPIを使う準備
 以前の記事を見て下さい
 http://box406.hatenablog.com/entry/2013/01/31/074651
 
-* fasebookのAPIを使う準備
-以前の記事を見て下さい
-http://box406.hatenablog.com/entry/2013/02/01/074219
-
-* facebookのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得する
+* twitterのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得し、tweetしてみる
+サンプルファイル構成
+- <b>oauth.php</b>（リクエストトークンを取得しログイン画面を表示するまで)
+- <b>callback.php</b>（ログイン画面からのcallbackに指定されているファイル、ユーザ情報の取得とtweetを行う）
 
 ** ログイン画面を表示するまで
-
-- ログイン認証（サンプルソース）
+サンプルソース(oauth.php)
 >|php|
 <?php
 
-//read 
-require_once('vendor/eden/eden.php');
-
-// api setting
-$api_setting = array("facebook" => array("key"  => "*******",
-                                         "pass" => "*******"));
-
-// set loader
-eden()->setLoader();
-$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
-$login = $auth->getLoginUrl();
-
-header('Location: ' . $login);
-||<
-
-- edenの読込み
->|php|
-//read 
-require_once('vendor/eden/eden.php');
-||<
-edenは以下のURLからダウンロード
->||
-http://www.eden-php.com/
-||<
-「vendor」に配置している、呼び出せる場所ならどこでもよい
-composerとかで配置するのがスマートなやり方なんでしょうね〜、今度やってみます
-
-- 取得した「App ID」、「App Secret」を設定する
->||
-// api setting
-$api_setting = array("facebook" => array("key"  => "*******",
-                                         "pass" => "*******"));
-||<
-keyに「App ID」をpassに「App secret」を設定しています
-別に配列に設定しなくても良いです、定数とかに設定してもよいです、好みの問題かと思います
-
-- eden の読込み
->|php|
-// set loader
-eden()->setLoader();
-||<
-上記の記述をかならず処理を行う前に書いて下さい、公式のマニュアルのサンプルには上記の記述が載っていないので
-かるくはまりました、よく考えればあたり前の事なんですが
-
-- oauth、ログイン用URLを取得
->|php|
-$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
-$login = $auth->getLoginUrl();
-||<
-auth()の引数は以下です
-
-|第1引数|App ID|
-|第2引数|App Secret|
-|第3引数|callback URL|
-
-ログインURLを取得する
-
-- 取得したログインURLに飛ばす
->||
-header('Location: ' . $login);
-||<
-facebookのログイン画面が表示されます
-
-[f:id:box406:20130211080835p:plain]
-ログインを行って下さい、入力されたID/Passが正しければ設定したcallbackURLに遷移します
-
-** ログイン画面から戻ってきた処理（callback）
-- サンプルソース（callbackURL）
->|php|
-<?php
-
-//read 
-require_once('vender/eden/eden.php');
+// read
+require_once("vender/eden/eden.php");
 
 // sesstion start
 session_start();
 
 // api setting
-$api_setting = array("facebook" => array("key"  => "313820652072237",
-                                         "pass" => "a9ec7cfea7a5b37ea93f0e3229fb5902"));
+// # Todo twitter Consumer or access token
+$api_setting = array("twitter"  => array("key"  => "******",
+                                         "pass" => "******"));
 
 // set loader
 eden()->setLoader();
-$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
-$access = $auth->getAccess($_GET['code']);
-$user = eden('facebook')->graph($access['access_token'])->getUser();
+
+// twitter auth
+$auth = eden("twitter")->auth($api_setting["twitter"]["key"], $api_setting["twitter"]["pass"]);
+
+// get request token
+$token = $auth->getRequestToken();
+$_SESSION["request_secret"] = $token["oauth_token_secret"];
+
+// get login url
+$login = $auth->getLoginUrl($token["oauth_token"], "http://localhost/digup/test/twitter_callback.php", "authorize", true);
+
+// location 
+header("Location:" . $login);
+exit();
 ||<
-※authとcallbackを同じソースで行ってもよいが分かりやすいように処理を分けました、公式のサンプルはワンソースで処理を行っています
-
-- 同じ部分の説明は省きます
->||
-<?php
-
-//read 
-require_once('vender/eden/eden.php');
-
-// sesstion start
-session_start();
-
-// api setting
-$api_setting = array("facebook" => array("key"  => "313820652072237",
-                                         "pass" => "a9ec7cfea7a5b37ea93f0e3229fb5902"));
-
-// set loader
-eden()->setLoader();
-$auth = eden('facebook')->auth($api_setting['facebook']['key'], $api_setting['facebook']['pass'], 'http://localhost/digup/test/facebook_callback.php');
-||<
-
--- アクセストークンの取得
->||
-$access = $auth->getAccess($_GET['code']);
-||<
-facebookから帰ってきた「code」を使ってアクセストークンを取得
-
--- ユーザ情報を取得
->||
-$user = eden('facebook')->graph($access['access_token'])->getUser();
-||<
-graphメソッド、getUserメソッドを使ってユーザ情報を取得します
-オプション項目が指定できますが、ここではなにも指定せずに情報を取得しています
-
-成功すれば$userに配列でユーザ情報が格納されます
-
-* twitterのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得する
