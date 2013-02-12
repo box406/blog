@@ -1,0 +1,354 @@
+# twitter のAPIを簡単に使うために「eden」を試す
+* twitter のAPIを使う準備
+以前の記事を見て下さい
+http://box406.hatenablog.com/entry/2013/01/31/074651
+
+* twitterのAPIを使用してログイン認証を行い、ログインを行ったユーザの情報を取得し、tweetしてみる
+サンプルファイル構成
+- <b>oauth.php</b>（リクエストトークンを取得しログイン画面を表示するまで)
+- <b>callback.php</b>（ログイン画面からのcallbackに指定されているファイル、ユーザ情報の取得とtweetを行う）
+
+** ログイン画面を表示するまで
+サンプルソース(oauth.php)
+>|php|
+<?php
+
+// read
+require_once("vender/eden/eden.php");
+
+// sesstion start
+session_start();
+
+// api setting
+$api_setting = array("twitter"  => array("key"  => "******",
+                                         "pass" => "******"));
+
+// set loader
+eden()->setLoader();
+
+// twitter auth
+$auth = eden("twitter")->auth($api_setting["twitter"]["key"], $api_setting["twitter"]["pass"]);
+
+// get request token
+$token = $auth->getRequestToken();
+$_SESSION["request_secret"] = $token["oauth_token_secret"];
+
+// get login url
+$login = $auth->getLoginUrl($token["oauth_token"], "http://localhost/digup/test/twitter_callback.php", "authorize", true);
+
+// location 
+header("Location:" . $login);
+exit();
+||<
+
+
+<b>1. edenを読込み</b>
+>|php|
+// read
+require_once("vender/eden/eden.php");
+||<
+
+
+<b>2. requesttokenを格納する為にsessionをスタート</b>
+>|php|
+// sesstion start
+session_start();
+||<
+
+
+<b>3. 取得した「Consumer key」「Consumer secret」を設定</b>
+>|php|
+// api setting
+$api_setting = array("twitter"  => array("key"  => "******",
+                                         "pass" => "******"));
+||<
+keyにConsumer keyを設定する、passにConsumer secretを設定しています
+別に配列に設定しなくても良いです、定数とかに設定してもよいです、好みの問題かと思います
+
+
+<b>4. eden の読込み</b>
+>||
+// set loader
+eden()->setLoader();
+||<
+上記の記述をかならず処理を行う前に書いて下さい、公式のマニュアルのサンプルには上記の記述が載っていないので
+かるくはまりました（ちゃんと英語が読めれば書いてあるんでしょうけどね〜〜）
+
+
+<b>5. authをつかう準備</b>
+>||
+// twitter auth
+$auth = eden("twitter")->auth($api_setting["twitter"]["key"], $api_setting["twitter"]["pass"]);
+||<
+auth()の引数は以下です
+|第1引数|Consumer key|
+|第2引数|Consumer pass|
+
+
+<b>6. RequestTokenを取得してsesionに格納する</b>
+>||
+// get request token
+$token = $auth->getRequestToken();
+$_SESSION["request_secret"] = $token["oauth_token_secret"];
+||<
+設定した「Consumer key」「Consumer secret」とAPIの登録時のWEB siteURLが正しければ$tokenに以下のような
+配列が返却されます
+>||
+array (size=3)
+  'oauth_token' => string ':lgdmkaslgnd;angdsa:jgfbalgdjakgdsaYMHOVlc' (length=43)
+  'oauth_token_secret' => string 'gdjalhgiuaoghiuangjldagdhsjakgndsajkhipu' (length=42)
+  'oauth_callback_confirmed' => string 'true' (length=4)
+||<
+返却された配列の「oauth_token_secret」をsessionに格納しています、アクセストークンを取得する時に使用します
+
+
+<b>7. 認証用のログインURLを取得する</b>
+>||
+// get login url
+$login = $auth->getLoginUrl($token["oauth_token"], "http://localhost/callback.php", true);
+||<
+上記のメソッドはちょっと改良しています
+引数を１つ増やしています、第3引数の位置に追加している
+
+そのままedenを使用してログインURLを取得すると以下のURLが取得されます
+>||
+https://api.twitter.com/oauth/authorize
+||<
+<b>※実際には引数がつけられますが長いの省略しています</b>
+上記のURLを実行すると以下の画面が表示されます
+[f:id:box406:20130213071429p:plain]
+
+公式のドキュメントを確認すると以下の2種類があるっぽい（※抜粋しています）
+- oauth/authenticate
+- oauth/authorize
+edenで標準で使用されているのは「oauth/authorize」で読めない英語を確認すると「Desktop applications」がどうたらこうたらと書いている
+なるほど、アプリと連携する時に使うんじゃないかな〜って思いました、こっちでログインしても得られる結果は同じようですがなにか気になるので以下の
+ようにedenに手を入れました
+
+- <b>edenを修正</b>
+「eden/twitter/oauth.php」に以下の記述を追加
+
+
+constの追加（23行目付近）
+>||
+const AUTHENTICATE_URL  = 'https://api.twitter.com/oauth/authenticate';
+||<
+
+
+getLoginUrlに引数を追加（93行目付近）
+>||
+public function getLoginUrl($token, $redirect, $login_type = 'authorize', $force_login = false) {
+||<
+$login_type = 'authorize'を追加、デフォルト値を設定しておく
+
+
+error チェックを追加（98行目付近）
+>||
+->argument(3, 'string')     //Argument 2 must be a string  add
+||<
+
+
+条件判断を追加（105行目付近）
+>||
+// add
+switch ($login_type) {
+    case 'authorize':
+        $url = self::AUTHORIZE_URL;
+        break;
+    case 'authenticate':
+        # code...
+        $url = self::AUTHENTICATE_URL;
+        break;
+    default:
+        # code...
+        break;
+}
+||<
+「self::AUTHORIZE_URL」は設定されている
+
+
+return を変更（124行目付近）
+>||
+return $url . '?' . $query;
+||<
+
+
+最終的にgetLoginUrlメソッドを以下のように修正しました
+>||
+public function getLoginUrl($token, $redirect, $login_type = 'authorize', $force_login = false) {
+    //Argument tests
+    Eden_Twitter_Error::i()
+        ->argument(1, 'string')     //Argument 1 must be a string
+        ->argument(2, 'string')     //Argument 2 must be a string
+        ->argument(3, 'string')     //Argument 2 must be a string  add
+        ->argument(4, 'bool');      //Argument 3 must be a boolean
+    
+    //build the query
+    $query = array('oauth_token' => $token, 'oauth_callback' => $redirect, 'force_login' => (int)$force_login);
+    $query = http_build_query($query);
+    // add
+    switch ($login_type) {
+        case 'authorize':
+            $url = self::AUTHORIZE_URL;
+            break;
+        case 'authenticate':
+            # code...
+            $url = self::AUTHENTICATE_URL;
+            break;
+        
+        default:
+            # code...
+            break;
+    }
+    // add
+    //return self::AUTHORIZE_URL.'?'.$query;
+    return $url . '?' . $query;
+}
+||<
+
+上記の修正後にログインURLの取得部分を以下のように書き換えます
+>||
+// get login url
+$login = $auth->getLoginUrl($token["oauth_token"], "http://localhost/callback.php", "authenticate", true);
+||<
+getLoginUrlの引数は以下です
+|第1引数|取得したoauth_token|
+|第2引数|callbackURL|
+|第3引数|authorize or authenticate|
+|第4引数|自動ログイン|
+
+取得したURLを実行すると以下の画面が表示されます
+[f:id:box406:20130213074553p:plain]
+
+
+<b>8. 取得したログインURLを表示する</b>
+>||
+// location 
+header("Location:" . $login);
+exit();
+||<
+以下の画面が表示されます
+[f:id:box406:20130213075030p:plain]
+ログインID、パスワードを入力してtwitterにログインして下さい
+
+
+** ログイン画面から戻ってきた処理（callback）
+サンプルソース(callback.php)
+>|php|
+<?php
+
+// read
+require_once("vender/eden/eden.php");
+
+// sesstion start
+session_start();
+
+// api setting
+$api_setting = array("twitter"  => array("key"  => "I6WKwQVBpCjoYmDnMrqcg",
+                                         "pass" => "D6H8m1PfUPLGJsactMlQQUvGEGJWn7HMAUFB2fISJY"));
+
+// set loader
+eden()->setLoader();
+
+// twitter auth test
+$auth = eden("twitter")->auth($api_setting["twitter"]["key"], $api_setting["twitter"]["pass"]);
+
+// get access token
+$token = $auth->getAccessToken($_GET['oauth_token'], $_SESSION['request_secret'], $_GET['oauth_verifier']);
+
+// access to users info 
+$users = eden('twitter')->users($api_setting['twitter']['key'], $api_setting['twitter']['pass'], $token['oauth_token'], $token['oauth_token_secret']);
+
+// get users info
+// $token['user_id']がなぜかstringで渡されるので明示的に型をキャストする
+$user_profile = $users->getDetail((int) $token['user_id']);
+
+// tweets
+$tweets = eden('twitter')->tweets($api_setting['twitter']['key'], $api_setting['twitter']['pass'], $token['oauth_token'], $token['oauth_token_secret']);
+$tweets->tweet('eden test');
+||<
+※authとcallbackを同じソースで行ってもよいが分かりやすいように処理を分けました、公式のサンプルはワンソースで処理を行っています
+
+
+<b>1. 同じ部分の説明は省きます</b>
+>||
+// read
+require_once("vender/eden/eden.php");
+
+// sesstion start
+session_start();
+
+// api setting
+$api_setting = array("twitter"  => array("key"  => "I6WKwQVBpCjoYmDnMrqcg",
+                                         "pass" => "D6H8m1PfUPLGJsactMlQQUvGEGJWn7HMAUFB2fISJY"));
+
+// set loader
+eden()->setLoader();
+
+// twitter auth test
+$auth = eden("twitter")->auth($api_setting["twitter"]["key"], $api_setting["twitter"]["pass"]);
+
+// get access token
+$token = $auth->getAccessToken($_GET['oauth_token'], $_SESSION['request_secret'], $_GET['oauth_verifier']);
+||<
+
+
+<b>2. ユーザ情報にアクセスするための準備</b>
+>||
+// access to users info 
+$users = eden('twitter')->users($api_setting['twitter']['key'], $api_setting['twitter']['pass'], $token['oauth_token'], $token['oauth_token_secret']);
+||<
+users()の引数は以下
+|第1引数|Consumer key|
+|第2引数|Consumer pass|
+|第3引数|oauth_token|
+|第4引数|oauth_token_secret|
+
+
+<b>3. ユーザ情報を取得する</b>
+>||
+// get users info
+// $token['user_id']がなぜかstringで渡されるので明示的に型をキャストする
+$user_profile = $users->getDetail((int) $token['user_id']);
+||<
+$users->getDetail()メソッドの中で以下の判断が行われている
+>||
+//if it is integer
+if(is_int($id)) {
+    //it is user id
+    $this->_query['user_id'] = $id;
+//else it is string
+} else {
+    //it is screen name
+    $this->_query['screen_name'] = $id;
+}
+||<
+<b>$token['user_id']はstring型で格納されており（中身は数字です）、そのまま渡すと「screen_name」と判断され期待した結果を得る事が
+できませんので、数値型(integer)にキャストしてからgetDatailに渡しています
+渡されたIDが正しければ$user_profileにユーザの情報が格納されます、他にもoptionの指定が可能ですがここでは説明を省略します
+</b>
+
+
+<b>4. tweetsする、まずは準備</b>
+>||
+// tweets
+$tweets = eden('twitter')->tweets($api_setting['twitter']['key'], $api_setting['twitter']['pass'], $token['oauth_token'], $token['oauth_token_secret']);
+||<
+tweets()の引数は以下
+|第1引数|Consumer key|
+|第2引数|Consumer pass|
+|第3引数|oauth_token|
+|第4引数|oauth_token_secret|
+
+<b>5. tweetする
+>||
+$tweets->tweet('eden test');
+||<
+tweetする内容を記述する、他にもoptionの指定が可能だがここでは省略します
+
+
+これでとりあえず終了です
+
+ほかにもできる事はたくさんありますので以下のドキュメントを参考にして下さい
+http://www.eden-php.com/documentation/social/twitter
+⬆英語です(T T)
