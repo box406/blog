@@ -1,0 +1,201 @@
+title : さくらVPS(1G)にnginx + php-fpmの環境を構築したのでメモ
+
+ユーザの追加やらsshの設定やらは省きます
+OSはデフォルトのcentOS x86_64を使っています
+
+<b>1. yumの設定</b>
+>|??|
+# yum install yum-fastestmirror
+# yum update 
+||<
+
+<b>2. 最新のnginxをインストールする為の設定</b>
+※この時点（2013/2/18）では1.2.7が最新
+
+* 「/etc/yum.repos.d/nginx.repo」を作成する
+>|??|
+# vim /etc/yum.repos.d/nginx.repo
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/centos/6/$basearch/
+gpgcheck=0
+enabled=1
+||<
+
+yumを確認する
+
+>|??|
+# yum info nginx
+nginx
+nginx/primary
+nginx
+Available Packages
+Name        : nginx
+Arch        : x86_64
+Version     : 1.2.7
+Release     : 1.el6.ngx
+Size        : 364 k
+Repo        : nginx
+Summary     : high performance web server
+URL         : http://nginx.org/
+License     : 2-clause BSD-like license
+Description : nginx [engine x] is a HTTP and reverse proxy server, as well as
+            : a mail proxy server
+||<
+上記が確認できたらOK
+
+<b>php5.4.11をインストールするための設定</b>
+※この時点（2013/2/18）で5.4系では5.4.11が最新
+
+* リポジトリを追加
+>|??|
+# wget http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/epel-release-6-5.noarch.rpm
+# wget http://dl.iuscommunity.org/pub/ius/stable/Redhat/6/x86_64/ius-release-1.0-10.ius.el6.noarch.rpm
+# rpm -Uvh epel-release-6-5.noarch.rpm
+# rpm -Uvh ius-release-1.0-10.ius.el6.noarch.rpm
+||<
+
+* リポジトリを有効にする
+
+/etc/yum.repos.d/ius-archive.repo
+/etc/yum.repos.d/ius-dev.repo
+/etc/yum.repos.d/ius-testing.repo
+/etc/yum.repos.d/ius.repo
+/etc/yum.repos.d/epel-testing.repo
+/etc/yum.repos.d/epel.repo
+
+上記のリポジトリを「enable=1」に設定する
+<b>※上記の設定は別にしなくてもよい、yum を実行する際にリポジトリを指定しても良い</b>
+
+yumを確認する
+
+>|??|
+# yum info php
+Installed Packages
+Name        : php
+Arch        : x86_64
+Version     : 5.4.11
+Release     : 1.el6.remi
+Size        : 9.1 M
+Repo        : installed
+From repo   : remi
+Summary     : PHP scripting language for creating dynamic web sites
+URL         : http://www.php.net/
+License     : PHP and Zend and BSD
+Description : PHP is an HTML-embedded scripting language. PHP attempts to make it
+            : easy for developers to write dynamically generated web pages. PHP also
+            : offers built-in database integration for several commercial and
+            : non-commercial database management systems, so writing a
+            : database-enabled webpage with PHP is fairly simple. The most common
+            : use of PHP coding is probably as a replacement for CGI scripts.
+            : 
+            : The php package contains the module which adds support for the PHP
+            : language to Apache HTTP Server.
+||<
+上記が確認できたらOK
+
+<b>3. インストール</b>
+* nginx 
+>|??|
+# yum install nginx
+||<
+
+* php
+>|??|
+# yum install php54.x86_64 php54-cli.x86_64 php54-common.x86_64 php54-fpm.x86_64 php54-gd.x86_64 php54-mbstring.x86_64 php54-mysql.x86_64 php54-pdo.x86_64 php54-xml.x86_64 php54-pgsql.x86_64
+||<
+
+* mysql 
+>|??|
+# yum install mysql
+# yum install mysql-server
+||<
+
+<b>4. php & nginxの設定</b>
+
+* nginxの設定
+
+
+<b>・default.confを編集</b>
+>|??|
+server {
+    listen       80;
+    server_name  localhost;
+
+    #charset koi8-r;
+    #access_log  /var/log/nginx/log/host.access.log  main;
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log;
+
+    location / {
+        #root   /usr/share/nginx/html;
+        root   /var/www/nginx;
+        index  index.php index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    location ~ \.php$ {
+        #root           html;
+        fastcgi_pass   127.0.0.1:9000;
+        fastcgi_index  index.php;
+        #fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        fastcgi_param  SCRIPT_FILENAME  /var/www/nginx$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+||<
+
+
+<b> ・hoge.virtual.conf の設定</b>
+
+公開するディレクトリは「/home/hoge/htdocs」に設定する
+ログディレクトリは「/home/hoge/logs」に設定する
+>|??|
+# vim /etc/nginx/conf.d/hoge.virtual.conf
+server {
+    listen 80;
+    server_name hoge.jp;
+
+    access_log /home/hoge/logs/access_log;
+    error_log /home/hoge/logs/error_log;
+
+    location / {
+        root /home/hoge/htdocs;
+        index index.php index.html index.htm;
+    }
+
+    location ~ \.php$ {
+        #root           html;
+        fastcgi_pass   127.0.0.1:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME  /home/hoge/htdocs$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+}
+||<
+
+* php-fpmの設定
+特に設定せずに動いています
