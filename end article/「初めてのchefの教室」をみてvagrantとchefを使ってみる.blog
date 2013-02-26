@@ -1,0 +1,140 @@
+title : 「初めてのchefの教室」をみてvagrantとchefを使ってみる　第1回
+
+まず僕はインフラエンジニアではなく、ここ10年ぐらいはPHPerです
+30人前後の会社に在籍していますが、エンジニアは2人しかいませんのでもちろん
+サーバの構築や管理もします
+現在は先人の置き土産のサーバがすごく個性的なできで1台づつ管理しています、今は15台ぐらいの
+個性豊かなサーバ達を管理していますが、これから別サービスを立ち上げてサーバがどんどん増えていく
+予定なので今のままではどこかで決壊してしまうという思いから藁にもすがるように[http://www.engineyard.co.jp/blog/2013/engineyard-meetup-chef-seminar/:title=「初めてのchefの教室」]
+を視聴しました
+これだと思いさっそく勉強を初めて見ます
+
+この記事はそのログです
+
+* 1. vagrant install
+
+>||
+$ sudo gem install vagrant
+||<
+<b>※rubygems が使える状態である前提です</b>
+
+* 2. boxの準備
+<b>※boxは仮想マシンの雛形です、vagrantはあらかじめ用意された雛形を利用して仮想マシンの構築を行います</b>
+
+>||
+http://www.vagrantbox.es/
+||<
+上記のサイトに大量のbox(雛形)が用意されている
+今回は「CentOS 6.3 x86_64 minimal」を利用する
+
+雛形を追加する
+>||
+$ sudo vagrant box add centos_6.3_x86_64_min https://dl.dropbox.com/u/7225008/Vagrant/CentOS-6.3-x86_64-minimal.box
+||<
+書式は以下になります
+
+>||
+vagrant box add [title] [url]
+||<
+
+・title は任意の名前を設定
+・url は「http://www.vagrantbox.es/」に書かれているURLを設定する
+
+以下のようになればOKです
+
+>||
+[vagrant] Downloading with Vagrant::Downloaders::HTTP...
+[vagrant] Downloading box: https://dl.dropbox.com/u/7225008/Vagrant/CentOS-6.3-x86_64-minimal.box
+[vagrant] Extracting box...
+[vagrant] Verifying box...
+[vagrant] Cleaning up downloaded box..
+||<
+
+* 3. 仮想マシンの作成
+まず適当なディレクトリを作成
+>||
+$ mkdir /Users/[username]/vagrant/
+$ mkdir /Users/[username]/vagrant/test
+||<
+
+作成したディレクトリに移動
+>||
+$ cd /Users/[username]/vagrant/test
+||<
+
+>||
+$ sudo vagrant init centos_6.3_x86_64_min
+||<
+
+書式は以下になります
+
+>||
+vagrant init [title]
+||<
+・title は設定した任意の名前を記述
+
+ディレクトリに「Vagrantfile」という設定ファイルが作成されるが今回はなにも記述せずそっとしておきます
+内容はrubyで記述するようです、この設定はまたのちほど・・・
+
+* 4. 仮想マシンを起動
+とりあえずこのまま起動してみる
+
+>||
+$ sudo vagrant up
+||<
+
+以下のような内容が表示されるはず
+
+>||
+[default] VM already created. Booting if it's not already running...
+[default] Clearing any previously set forwarded ports...
+[default] Forwarding ports...
+[default] -- 22 => 2222 (adapter 1)
+[default] Creating shared folders metadata...
+[default] Clearing any previously set network interfaces...
+[default] Booting VM...
+[default] Waiting for VM to boot. This can take a few minutes.
+[default] VM booted and ready for use!
+[default] Mounting shared folders...
+[default] -- v-root: /vagrant
+||<
+
+起動したので次はsshでログインしてみる
+
+* 5. sshでログインする
+>||
+sudo vagrant ssh
+||<
+
+ログインできた・・・が当然のように何も設定はされていませんが今まで手動で仮想マシンを作ってたのがアホみたいな思えてくるぐらいに、さくっと構築ができた
+作業時間は大体１０分ぐらい
+
+exitでログアウトして仮想マシンを終了する
+
+* 6. 仮想マシンの終了／再起動／削除
+>||
+$ sudo vagrant halt
+||<
+
+再起動は以下
+>||
+$ sudo vagrant reload
+||<
+
+仮想マシンを削除する場合は以下
+>||
+sudo vagrant destory
+||<
+
+
+chefについてなにも触れてません、触っていないです
+次回はchefについて書きます
+
+では失礼します
+
+
+* 参考URL
+http://www.ryuzee.com/contents/blog/4292
+http://www.engineyard.co.jp/blog/2013/engineyard-meetup-chef-seminar/
+
+ありがとう御座いました
