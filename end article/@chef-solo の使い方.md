@@ -39,7 +39,7 @@ knife-soloの設定
 
 1. gemをアップデート
 
-    # sudo gem update
+        # sudo gem update
 
 2. bundleをインストールする
 
