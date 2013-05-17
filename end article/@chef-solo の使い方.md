@@ -39,24 +39,24 @@ knife-soloの設定
 
 1. gemをアップデート
 
-    # sudo gem update
+        # sudo gem update
 
 2. bundleをインストールする
 
-    # sudo gem instll bundle
+        # sudo gem instll bundle
 
 3. githubからknife-soloの0.3.0を取得
 
-    # git clone git clone git://github.com/matschaffer/knife-solo.git
+        # git clone git clone git://github.com/matschaffer/knife-solo.git
 
 4. knife-solo0.3.0をインストール
 
-    # cd knife-solo
-    # bundle
-    # sudo rake install
-    # mkdir ~/.chef
-    # vim ~/.chef/knife.rb
-    knife[:solo_path] = '/tmp/chef-solo'
+        # cd knife-solo
+        # bundle
+        # sudo rake install
+        # mkdir ~/.chef
+        # vim ~/.chef/knife.rb
+        knife[:solo_path] = '/tmp/chef-solo'
 
     **※gemでもインストール可能ですが、0.2.0しか入りません
 
@@ -210,20 +210,20 @@ OSの状態を記憶しその状態に戻す事ができるプラグイン、SQL
 
 1. saharaのインストール
 
-    # vagrant gem install sahara
+        # vagrant gem install sahara
 
 2. 現在の状態を記憶
 
-    # vagrant sandbox on
+        # vagrant sandbox on
 
 3. 記憶した状態に戻す
 
-    # vagrant sandbox rollback
+        # vagrant sandbox rollback
 
 4. 確定する
 
-    # vagrant sandbox commit
+        # vagrant sandbox commit
 
 5. sandboxを解除する
 
-    # vagrant sandbox off
+        # vagrant sandbox off
