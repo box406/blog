@@ -1,0 +1,27 @@
+title : nginx で「.html」をphpとして実行する
+
+* Apacheでの設定
+「httpd.conf」もしくは「.htaccess」に下記を設定
+>|??|
+AddType application/x-httpd-php .php .html
+||<
+ 
+* nginxでの設定
+「default.conf」もしくは「nginx/conf.d/hoge.virtual.conf」に下記を設定
+>|??|
+# vim /etc/nginx/conf.d/hoge.virtual.conf
+location ~ \.html$ {
+    root           html;
+    fastcgi_pass   127.0.0.1:9000;
+    fastcgi_index  index.html;
+    fastcgi_param  SCRIPT_FILENAME  /home/hoge/htdocs$fastcgi_script_name;
+    include        fastcgi_params;    
+}
+||<
+
+
+「/etc/php-fpm.d/www.conf」に下記を設定、コメントアウトされている場合は、コメントを外して下さい
+>|??|
+# vim /etc/php-fpm.d/www.conf 
+security.limit_extensions = .php .php3 .php4 .php5 .html
+||<

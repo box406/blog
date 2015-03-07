@@ -1,0 +1,136 @@
+仕事でどうしても異なる環境でPHPUnitを用意する必要があったのと、デプロイ環境を
+揃えたいという要求が出てきたので前までは「pyrus.phar」を使っていたのですが
+情報がすくなすぎなのとやれ「sqlite」だのなんだのと要求してくるので今回乗り換えました
+また「pyrus.phar」ではデプロイ環境を揃えるのがめんどくさいと感じた
+
+1. composerをダウンロードする
+>||
+$ curl -s https://getcomposer.org/installer | php
+||<
+コマンドラインから実行して下さい
+「curl」がない場合は以下を実行してくれてと公式に書いている
+>||
+$ php -r "eval('?>'.file_get_contents('https://getcomposer.org/installer'));"
+||<
+
+「composer.phar」がダウンロードされています
+このファイルを適当なディレクトリに置いて下さい
+僕は「/Users/[your username]/Sites」に置いています
+
+2. composer.jsonを用意する
+>||
+{
+  "repositories":[
+    {
+      "type":"pear",
+      "url":"http://pear.php.net"
+    }
+  ],
+  "require":{
+    "phpunit/phpunit": "3.7.*",
+    "pear-pear/HTTP_Request2": "2.1.*"
+  }
+}
+||<
+とりあえず「phpunit」と「pear/HTTP_Request2」を使いたかったので上記のようにしています
+「pear/HTTP_Request2」はPackagistに含まれていなかったのでリポジトリを追加しています
+Packagistは以下のサイトから探せます
+>||
+https://packagist.org/
+||<
+上記に含まれているパッケージはリポジトリの追加はいらないです（※間違ってたら教えてほしいです）
+「https://packagist.org/」でphpunitを検索したらこうなります
+[f:id:box406:20130202085226p:plain]
+
+今回は3.7を使いたかったので「"phpunit/phpunit": "3.7.*",」としました
+
+この他にも色々な事ができるようです、詳しくなったらまた書く
+以下のページにドキュメントがあります（最近ドキュメントが英語ばっかり、よめね〜〜〜よ）
+>||
+http://getcomposer.org/doc/05-repositories.md#package
+||<
+
+3. install
+composerでインストールするライブラリを設置するディレクトリに移動します
+以下は僕の場合です
+-「composer.phar」は「/Users/[your username]/Sites/」に配置しています
+- 2. で作成した「composer.json」は「/Users/[your username]/Sites/test」に配置しています
+>||
+$ cd /Users/[your username]/Sites/
+$ mkdir test
+$ cd test
+$ php ../composer.phar install
+Loading composer repositories with package information
+Initializing PEAR repository http://pear.php.net
+Installing dependencies
+  - Installing symfony/yaml (v2.1.7)
+    Downloading: 100%         
+
+  - Installing phpunit/php-text-template (1.1.4)
+    Downloading: 100%         
+
+  - Installing phpunit/phpunit-mock-objects (1.2.3)
+    Downloading: 100%         
+
+  - Installing phpunit/php-timer (1.0.4)
+    Downloading: 100%         
+
+  - Installing phpunit/php-token-stream (1.1.5)
+    Downloading: 100%         
+
+  - Installing phpunit/php-file-iterator (1.3.3)
+    Downloading: 100%         
+
+  - Installing phpunit/php-code-coverage (1.2.7)
+    Downloading: 100%         
+
+  - Installing phpunit/phpunit (3.7.13)
+    Downloading: 100%         
+
+  - Installing pear-pear.php.net/xml_util (1.2.1)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/console_getopt (1.3.1)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/structures_graph (1.0.4)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/archive_tar (1.3.10)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/pear (1.9.4)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/net_url2 (2.0.0)
+    Downloading: 100%         
+  - Installing pear-pear.php.net/http_request2 (2.1.1)
+    Downloading: 100%         
+phpunit/phpunit-mock-objects suggests installing ext-soap (*)
+phpunit/phpunit suggests installing phpunit/php-invoker (>=1.1.0)
+Writing lock file
+Generating autoload files
+||<
+ちょっと時間かかります、気長にまって下さい
+インストールが完了すると「vendor」ディレクトリが作成されてそのなかにインストールしたパッケージ
+とそれに必要なサブモジュール群が設置されています
+
+3. reuqire
+「vendor/autoload.php」が作成されているのでこのファイルを作成するアプリケーションから
+読み込んで下さい
+>||
+require "vendor/autoload.php";
+||<
+
+またPHPUnitのテストをコマンドラインから実行する場合は以下に実行ファイルが設置されています
+>||
+vendor/bin/phpunit
+||<
+
+例> インストールしたphpunitのバージョンをコマンドラインから表示する場合
+>||
+$ ./vendor/bin/phpunit --version
+PHPUnit 3.7.13 by Sebastian Bergmann.
+||<
+
+なぜ今まで使わんかたんやろと今回は激しく後悔しました
+これからはcomposerをどんどん使っていこうと思います
+
+composerなしでは生きられないかも・・・
+
+composerさんありがとう
